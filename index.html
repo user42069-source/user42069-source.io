@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="AislePilot: a transparent, local shopping-list and route-planning prototype.">
+  <title>AislePilot · Shopping route planner</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Crect width='40' height='40' rx='10' fill='%231463ff'/%3E%3Cpath d='M10 29L20 10L30 29M14 23H26' stroke='white' stroke-width='4' fill='none'/%3E%3C/svg%3E">
+  <!-- Prototype CDN; the CSS below also keeps the app usable without it. -->
+  <script async src="https://cdn.tailwindcss.com" onload="tailwind.config={corePlugins:{preflight:false},theme:{extend:{colors:{pilot:'#1463ff'}}}}"></script>
+  <style>
+    :root{font-family:Inter,ui-sans-serif,system-ui,-apple-system,sans-serif;color:#15233b;background:#f2f5fa;font-size:16px;color-scheme:light}
+    *{box-sizing:border-box}body{margin:0}button,input,textarea,select{font:inherit}button,a,input,select,summary{touch-action:manipulation}
+    button,a,summary{cursor:pointer}a{color:#175bd4;text-underline-offset:3px}button{border:0}h1,h2,h3,p{margin:0}h1{font-size:1.45rem;font-weight:800;letter-spacing:-.04em}h2{font-size:1.2rem;font-weight:750}h3{font-size:1rem;font-weight:750}
+    :focus-visible{outline:3px solid #1463ff;outline-offset:3px}[hidden]{display:none!important}.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+    .topbar{background:#10213d;color:white;padding:22px max(24px,calc((100vw - 1440px)/2));display:flex;align-items:center;justify-content:space-between;gap:16px}.brand{display:flex;align-items:center;gap:12px}.mark{background:#1463ff;border-radius:12px;padding:8px 13px;font-weight:850;font-size:1.4rem}.topbar small{color:#c4d1e8;font-size:.875rem}
+    .layout{max-width:1440px;margin:auto;padding:28px 24px 48px;display:grid;grid-template-columns:minmax(310px,410px) minmax(0,1fr);gap:24px;align-items:start}.panel,.card{background:white;border:1px solid #dce3ed;border-radius:18px}.panel{padding:24px}.card{padding:20px}.stack>*+*{margin-top:20px}.row{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}.muted{color:#56657a;font-size:.875rem;line-height:1.55}.label{display:block;font-size:.875rem;font-weight:700;margin-bottom:8px}.field{width:100%;background:#fafbfd;border:1px solid #bac7d8;border-radius:10px;padding:11px 12px;color:#15233b}.field:focus{border-color:#1463ff}textarea.field{min-height:280px;resize:vertical;line-height:1.75}.small-field{padding:7px 9px;font-size:.875rem}.two{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    .primary{background:#1463ff;color:white;padding:14px 18px;border-radius:11px;font-weight:750;width:100%}.primary:hover{background:#084bc9}.secondary{background:#eef3ff;color:#174fb9;padding:7px 11px;border-radius:8px;font-size:.875rem;font-weight:650}.secondary:hover{background:#dee9ff}.preset{display:flex;flex-wrap:wrap;gap:7px;margin-top:10px}.badge{display:inline-flex;border-radius:6px;padding:4px 8px;font-size:.75rem;font-weight:700;line-height:1.4;background:#edf2fb;color:#41546e}.topbar .badge{background:#263b5a;color:#d5e4ff}.warn{background:#fff5df;color:#785114}.note{padding:12px 14px;border-radius:10px;background:#edf3ff;color:#31517e;font-size:.875rem;line-height:1.55}.warning{background:#fff7e8;color:#765018}.error{background:#fff0ef;color:#a52c24}.check{display:flex;gap:9px;align-items:center;font-size:.875rem;cursor:pointer}input[type=checkbox]{accent-color:#1463ff;width:18px;height:18px;flex:none}
+    .results{min-width:0}.summary-grid{display:grid;grid-template-columns:1.35fr 1fr;gap:14px}.total{background:#10213d;color:white;border-color:#10213d}.total .muted{color:#c4d1e8}.money{font-size:2rem;font-weight:800;letter-spacing:-.04em;line-height:1.25;margin:10px 0}.tax-money{font-size:1.65rem;font-weight:750;margin:10px 0}.categories{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.category{border:1px solid #dce3ed;border-radius:10px;padding:12px}.category p{font-size:.875rem}.category strong{display:block;font-size:1.15rem;margin:5px 0}.bar{height:5px;border-radius:5px;background:#e5ebf5;overflow:hidden}.bar span{display:block;height:100%;background:#1463ff}
+    .map{background:#f5f8fc;border:1px solid #e0e7f0;border-radius:12px;margin-top:16px;overflow:hidden}.map svg{width:100%;height:auto;display:block}.map text{font-family:inherit;font-size:13px}.map a:focus circle{stroke:#111;stroke-width:4}.map a:hover circle{stroke:#ffb322;stroke-width:4}.route-number{width:31px;height:31px;border-radius:50%;background:#1463ff;color:white;display:inline-flex;align-items:center;justify-content:center;font-weight:750;flex:none}.route-card{border:1px solid #dce3ed;border-radius:14px;overflow:hidden;scroll-margin-top:20px}.route-card+ .route-card{margin-top:12px}.route-card summary{padding:16px;list-style:none;display:flex;align-items:center;gap:12px;background:#fbfcff}.route-card summary::-webkit-details-marker{display:none}.route-card summary::after{content:'+';font-size:1.2rem;margin-left:auto;color:#536786}.route-card[open] summary::after{content:'−'}.route-card summary h3{line-height:1.4}.item{padding:16px;border-top:1px solid #e5eaf2}.item-title{display:flex;align-items:flex-start;gap:10px}.item-title strong{overflow-wrap:anywhere}.item.done .item-name{text-decoration:line-through;color:#6a7587}.item-controls{display:grid;grid-template-columns:1.3fr 1fr;gap:12px;margin-top:12px}.item-controls label{font-size:.75rem;color:#56657a}.item-controls input,.item-controls select{margin-top:5px}.item-meta{margin-top:8px;display:flex;gap:8px;align-items:center;flex-wrap:wrap}.item-links{display:flex;gap:16px;flex-wrap:wrap;margin-top:10px;font-size:.875rem}.item-cost{font-weight:750;margin-left:auto}.progress-label{font-size:.875rem;display:flex;justify-content:space-between;gap:12px}progress{display:block;width:100%;height:7px;margin-top:10px;border:0;border-radius:6px;overflow:hidden;accent-color:#1463ff}progress::-webkit-progress-bar{background:#e4ebf6}progress::-webkit-progress-value{background:#1463ff}progress::-moz-progress-bar{background:#1463ff}.empty{padding:45px 25px;text-align:center}.footnote{font-size:.75rem;line-height:1.55;color:#657287}details.assumptions summary{font-size:.875rem;font-weight:700}details.assumptions p{margin-top:10px}.route-end{margin-top:12px;padding:14px;border-left:3px solid #1463ff;background:#f2f6ff}.gap-top{margin-top:12px}
+    @media(min-width:1100px){.input-panel{position:sticky;top:20px}}@media(max-width:900px){.layout{grid-template-columns:1fr}.input-panel{position:static}textarea.field{min-height:210px}}@media(max-width:480px){.layout{padding:16px 12px 32px}.panel,.card{padding:17px}.summary-grid{grid-template-columns:1fr}.topbar{padding:18px 16px}.topbar small{display:none}.money{font-size:1.85rem}.item-controls{grid-template-columns:1fr}.map text{font-size:14px}}
+    @media(prefers-reduced-motion:no-preference){html{scroll-behavior:smooth}.primary,.secondary{transition:background .15s}}
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-900 antialiased">
+  <header class="topbar"><div class="brand"><span class="mark" aria-hidden="true">A</span><div><h1>AislePilot</h1><small>Shopping route planner</small></div></div><span class="badge">LOCAL PROTOTYPE</span></header>
+  <main class="layout grid gap-6">
+    <section class="panel input-panel stack shadow-sm" aria-labelledby="listHeading">
+      <div class="row"><h2 id="listHeading">Your shopping list</h2><button id="loadSample" type="button" class="secondary">Load sample</button></div>
+      <form id="planner" class="stack">
+        <div><label class="label" for="shoppingList">What do you need?</label><textarea id="shoppingList" class="field" maxlength="12000" required spellcheck="false" aria-describedby="listHelp" placeholder="2 gallons milk, eggs&#10;- basketball&#10;- flower pot&#10;book: A Wizard of Earthsea"></textarea><p id="listHelp" class="muted gap-top">New lines, commas, or semicolons. Supports bullets, quantities, and Markdown checkboxes. Checked entries are skipped. Quote titles containing commas.</p></div>
+        <div><label class="label" for="startAddress">Starting address</label><input id="startAddress" class="field" maxlength="250" required list="demoAddresses" value="100 Market Way, Demo District" autocomplete="street-address"><datalist id="demoAddresses"><option value="100 Market Way, Demo District"></option><option value="900 Market Way, Demo District"></option><option value="10 Library Lane, Demo District"></option></datalist><div class="preset" aria-label="Sample starting addresses"><button class="secondary" type="button" data-origin="west">West start</button><button class="secondary" type="button" data-origin="east">East start</button><button class="secondary" type="button" data-origin="north">North start</button></div><p class="muted gap-top">Only these fictional addresses are mapped locally. A real address is used for nearby-store searches; it cannot generate a local route yet.</p></div>
+        <label class="check"><input id="returnTrip" type="checkbox">Return to the starting address</label>
+        <details class="assumptions"><summary>Tax &amp; estimate assumptions</summary><div class="two gap-top"><label class="label" for="groceryTax">Grocery tax %<input id="groceryTax" class="field" type="number" min="0" max="30" step="0.01" value="0" required></label><label class="label" for="otherTax">Other tax %<input id="otherTax" class="field" type="number" min="0" max="30" step="0.01" value="7" required></label></div><p class="muted">These are sample rates, not a jurisdiction lookup. All groceries share one rate; other and unassigned items share the other. Deposits, fees, fuel, and discounts are excluded.</p></details>
+        <button class="primary bg-pilot text-white" type="submit">Optimize My Route <span aria-hidden="true">→</span></button>
+        <p id="status" class="muted" role="status" aria-live="polite"></p>
+      </form>
+      <div class="note">All inventory is unverified. Budget ranges are illustrative fixtures, not researched prices or retailer quotes. Edit unit budgets in the results.</div>
+    </section>
+    <section class="results stack" aria-label="Shopping results">
+      <div id="emptyState" class="panel empty"><h2>Build your next trip</h2><p class="muted gap-top">Add your list and optimize to see store groups, a sample route, and your budget.</p></div>
+      <div id="output" class="stack" hidden>
+        <div id="notices" class="stack"></div>
+        <section class="card shadow-sm" aria-labelledby="routeHeading"><div class="row"><div><h2 id="routeHeading">Your store route</h2><p id="routeMeta" class="muted gap-top"></p></div><span class="badge">DEMO DISTANCES</span></div><div id="routeMap" class="map"></div><p id="routeExplanation" class="footnote gap-top"></p></section>
+        <div class="summary-grid"><section class="card total"><p id="totalLabel" class="muted">Total estimated cost</p><p id="totalMoney" class="money"></p><p id="totalRange" class="muted"></p></section><section class="card"><p class="muted">Estimated tax</p><p id="taxMoney" class="tax-money"></p><p id="coverage" class="muted"></p></section></div>
+        <section class="card stack"><div class="row"><h2>Cost by category</h2><span class="muted">Before tax · USD</span></div><div id="categoryCards" class="categories"></div><p class="footnote">Totals cover priced items only. Missing prices are excluded, never treated as zero. An entered unit budget replaces that item’s sample range.</p></section>
+        <section class="card"><div class="progress-label"><span>Shopping progress</span><span id="progressText"></span></div><progress id="shoppingProgress" value="0" max="1" aria-label="Shopping progress"></progress><p class="footnote gap-top">Checking off an item keeps it in the route and budget.</p></section>
+        <section aria-labelledby="stopsHeading"><h2 id="stopsHeading" style="margin-bottom:14px">Stop by stop</h2><div id="stops"></div></section>
+        <section id="unassignedSection" class="card" hidden><h2>Needs a store</h2><p class="muted gap-top">No reliable category match. Choose a store below or clarify the item in your list.</p><div id="unassigned"></div></section>
+      </div>
+    </section>
+  </main>
+  <noscript><p class="panel">Enable JavaScript to parse lists and calculate routes.</p></noscript>
+  <script>
+  'use strict';
+  /* DATA: Fictional road network. Brand names identify store types, not real branches.
+     No claim is made about actual locations, stock, prices, traffic, or tax law. */
+  const STORES = {
+    grocery: {name:'Giant Eagle', short:'Giant Eagle', category:'Groceries', domain:'gianteagle.com'},
+    sports:  {name:"DICK’S Sporting Goods", short:'DICK’S', category:'Sports', domain:'dickssportinggoods.com'},
+    home:    {name:'HomeGoods', short:'HomeGoods', category:'Home', domain:'homegoods.com'},
+    books:   {name:'Barnes & Noble', short:'Bookstore', category:'Books', domain:'barnesandnoble.com'}
+  };
+  const ORIGINS = {
+    west:'100 Market Way, Demo District', east:'900 Market Way, Demo District', north:'10 Library Lane, Demo District'
+  };
+  const NODES = {west:[50,210],grocery:[200,210],sports:[390,210],home:[495,210],east:[590,210],north:[285,65],books:[495,65]};
+  const ROADS = [['west','grocery',.7],['grocery','sports',1],['sports','home',.5],['home','east',.4],['home','books',.8],['books','north',1],['north','grocery',1.2],['north','sports',1.3]];
+  // Prices are illustrative cents per stated unit. Add aliases here to extend the sorter.
+  const entry = (aliases,store,unit,low,high,defaultQty=1) => ({aliases:aliases.split('|'),store,unit,low,high,defaultQty});
+  const ITEM_MAP = {
+    milk:entry('milk','grocery','gallon',350,550),
+    eggs:entry('egg|eggs','grocery','each',25,50,12),
+    bread:entry('bread|loaf of bread','grocery','loaf',250,500),
+    bananas:entry('banana|bananas','grocery','each',20,50),
+    apples:entry('apple|apples','grocery','each',50,150),
+    chicken:entry('chicken breast|chicken breasts|chicken','grocery','lb',350,650),
+    rice:entry('rice','grocery','lb',150,400),
+    pasta:entry('pasta|spaghetti','grocery','box',150,350),
+    tomatoes:entry('tomato|tomatoes','grocery','each',50,150),
+    lettuce:entry('lettuce','grocery','head',150,350),
+    coffee:entry('coffee','grocery','bag',700,1500),
+    butter:entry('butter','grocery','lb',350,600),
+    yogurt:entry('yogurt|yoghurt','grocery','cup',100,200),
+    cheese:entry('cheese','grocery','package',300,600),
+    juice:entry('apple juice|orange juice|juice','grocery','carton',350,650),
+    cereal:entry('cereal','grocery','box',300,650),
+    basketball:entry('basketball|basketballs','sports','each',2000,4500),
+    soccer:entry('soccer ball|soccer balls|football','sports','each',1500,3500),
+    tennis:entry('tennis balls|tennis ball','sports','can',300,700),
+    mat:entry('yoga mat|yoga mats','sports','each',1500,4000),
+    shoes:entry('basketball shoes|running shoes','sports','pair',5000,11000),
+    pot:entry('flower pot|flower pots|plant pot|plant pots|planter','home','each',800,2500),
+    candle:entry('candle|candles','home','each',500,1800),
+    towel:entry('bath towel|towel|towels','home','each',700,2000),
+    book:entry('book|books|novel|paperback|hardcover|dune|atomic habits','books','each',1000,3000)
+  };
+  const UNIT_ALIASES = {
+    each:'each',item:'each',items:'each',lb:'lb',lbs:'lb',pound:'lb',pounds:'lb',oz:'oz',ounce:'oz',ounces:'oz',kg:'kg',g:'g',
+    gallon:'gallon',gallons:'gallon',gal:'gallon',liter:'liter',liters:'liter',litre:'liter',litres:'liter',l:'liter',dozen:'dozen',
+    pack:'package',packs:'package',package:'package',packages:'package',box:'box',boxes:'box',bag:'bag',bags:'bag',
+    bottle:'bottle',bottles:'bottle',can:'can',cans:'can',pair:'pair',pairs:'pair',loaf:'loaf',loaves:'loaf',carton:'carton',cartons:'carton',cup:'cup',cups:'cup',head:'head',heads:'head'
+  };
+  // Conversion factors to pounds, US gallons, or individual pieces; no guessed piece weights.
+  const UNIT_SCALE = {lb:['mass',1],oz:['mass',1/16],kg:['mass',2.20462262],g:['mass',.00220462262],gallon:['volume',1],liter:['volume',.264172052],each:['count',1],dozen:['count',12]};
+  const SAMPLE = '# Groceries\n- 1 gallon milk\n- 1 dozen eggs\n- bread\n- 4 apples\n- 2 lb chicken breast\n\nbasketball; flower pot\nbook: The Left Hand of Darkness\nspecialty adapter';
+  const $ = id => document.getElementById(id);
+  const escapeHTML = value => String(value).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const normalize = value => String(value).toLowerCase().normalize('NFKD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,' ').trim();
+  const dollars = cents => new Intl.NumberFormat('en-US',{style:'currency',currency:'USD'}).format(cents/100);
+  const rangeText = (lo,hi) => lo === hi ? dollars(lo) : `${dollars(lo)}–${dollars(hi)}`;
+  const quantityText = value => Number(value.toFixed(3)).toString();
+  let state = null;
+
+  // Split CSV-like lines without splitting quoted book titles. Apostrophes remain ordinary text.
+  function splitItems(line) {
+    const parts=[]; let part='', quoted=false;
+    for(let i=0;i<line.length;i++) {
+      const c=line[i];
+      if(c==='"') { if(quoted && line[i+1]==='"'){part+='"';i++;}else quoted=!quoted; }
+      else if((c===',' || c===';') && !quoted){parts.push(part);part='';}else part+=c;
+    }
+    if(quoted) throw new Error('Close the double quote around the item or book title.');
+    parts.push(part); return parts;
+  }
+  function numberValue(s) {
+    const parts=s.trim().split(/\s+/);
+    const fraction=x=>x.includes('/') ? Number(x.split('/')[0])/Number(x.split('/')[1]) : Number(x);
+    return parts.reduce((sum,x)=>sum+fraction(x),0);
+  }
+  function matchItem(name) {
+    const words=normalize(name);
+    // Avoid interpreting electronic product names such as “Apple Watch” as groceries.
+    if(/\b(watch|iphone|ipad|macbook|laptop|adapter|charger|tablet)\b/.test(words)) return null;
+    let best=null, score=0;
+    for(const [key,data] of Object.entries(ITEM_MAP)) for(const alias of data.aliases) {
+      if((' '+words+' ').includes(' '+normalize(alias)+' ') && alias.length>score){best={key,...data};score=alias.length;}
+    }
+    return best;
+  }
+  function parseInput(raw) {
+    const items=[]; let skipped=0;
+    for(let line of raw.replace(/\r/g,'').split('\n')) {
+      line=line.trim();
+      if(!line || /^#{1,6}\s/.test(line) || /^(groceries|shopping list|sports|home|books)\s*:$/i.test(line)) continue;
+      line=line.replace(/^(?:[-*+•]\s+|\d+[.)]\s+)/,'');
+      if(/^\[[xX]\]/.test(line)){skipped++;continue;}
+      line=line.replace(/^\[\s*\]\s*/,'').replace(/\*\*|__|`/g,'');
+      for(let text of splitItems(line)) {
+        text=text.trim().replace(/^(?:-\s+|•\s*)/,''); if(!text) continue;
+        if(/^-\d/.test(text)) throw new Error('Quantities must be positive.');
+        let qty=1, explicitQty=false, unit=null;
+        const prefix=text.match(/^(\d+\s+\d+\/\d+|\d+\/\d+|\d+(?:\.\d+)?)\s*(?:[x×]\s*|\s+)(.+)$/i);
+        const suffix=text.match(/^(.+?)\s+[x×]\s*(\d+(?:\.\d+)?)$/i);
+        if(prefix){qty=numberValue(prefix[1]);text=prefix[2];explicitQty=true;}
+        else if(suffix){qty=Number(suffix[2]);text=suffix[1];explicitQty=true;}
+        if(!Number.isFinite(qty)||qty<=0||qty>999) throw new Error('Use quantities greater than 0 and no more than 999.');
+        const unitMatch=text.match(/^([a-z]+)\s+(?:of\s+)?(.+)$/i);
+        if(unitMatch && UNIT_ALIASES[unitMatch[1].toLowerCase()]){unit=UNIT_ALIASES[unitMatch[1].toLowerCase()];text=unitMatch[2];}
+        const match=matchItem(text);
+        if(!explicitQty && !unit && match) qty=match.defaultQty;
+        items.push({id:items.length,name:text,qty,unit:unit||match?.unit||'each',assumed:!unit,match,store:match?.store||'',customPrice:null,done:false});
+      }
+    }
+    if(items.length>100) throw new Error('Please keep each trip to 100 list entries or fewer.');
+    return {items,skipped};
+  }
+  function resolveOrigin(address) {
+    return Object.keys(ORIGINS).find(id=>normalize(ORIGINS[id])===normalize(address)) || null;
+  }
+  function buildDistances() {
+    const ids=Object.keys(NODES), distance={}, next={};
+    for(const a of ids){distance[a]={};next[a]={};for(const b of ids) distance[a][b]=a===b?0:Infinity;}
+    for(const [a,b,miles] of ROADS){distance[a][b]=distance[b][a]=miles;next[a][b]=b;next[b][a]=a;}
+    for(const k of ids) for(const a of ids) for(const b of ids) {
+      if(distance[a][k]+distance[k][b]<distance[a][b]-1e-9){distance[a][b]=distance[a][k]+distance[k][b];next[a][b]=next[a][k];}
+    }
+    return {distance,next};
+  }
+  const NETWORK=buildDistances();
+  function sortRoute(items,origin,returnTrip=false) {
+    if(!origin) return null;
+    const stores=Object.keys(STORES).filter(id=>items.some(item=>item.store===id));
+    if(!stores.length) return {order:[],miles:0,legs:[]};
+    let best={order:[],miles:Infinity};
+    // Exact enumeration, at most 4! = 24 orders. Stable tie-breaking follows STORES order.
+    function visit(order,remaining,from,miles) {
+      if(!remaining.length){const total=miles+(returnTrip?NETWORK.distance[from][origin]:0);if(total<best.miles-1e-9)best={order:[...order],miles:total};return;}
+      for(const id of remaining) visit([...order,id],remaining.filter(x=>x!==id),id,miles+NETWORK.distance[from][id]);
+    }
+    visit([],stores,origin,0);
+    let from=origin; const legs=[];
+    for(const to of [...best.order,...(returnTrip?[origin]:[])]){legs.push({from,to,miles:NETWORK.distance[from][to]});from=to;}
+    return {...best,legs};
+  }
+  function priceRange(item) {
+    if(item.customPrice!==null) return [item.customPrice,item.customPrice];
+    const m=item.match; if(!m) return null;
+    let factor=1;
+    if(item.unit!==m.unit){const a=UNIT_SCALE[item.unit],b=UNIT_SCALE[m.unit];if(!a||!b||a[0]!==b[0])return null;factor=a[1]/b[1];}
+    return [m.low*factor,m.high*factor];
+  }
+  function categoryOf(item) {return item.match ? STORES[item.match.store].category : (STORES[item.store]?.category||'Unassigned');}
+  function calculateCost(items,rates) {
+    const totals={low:0,high:0,mid:0,taxLow:0,taxHigh:0,taxMid:0,priced:0,categories:{},lines:{}};
+    for(const item of items) {
+      const category=categoryOf(item), range=priceRange(item);
+      const c=totals.categories[category] ||= {low:0,high:0,mid:0,priced:0,missing:0};
+      if(!range){c.missing++;totals.lines[item.id]=null;continue;}
+      const low=Math.round(range[0]*item.qty),high=Math.round(range[1]*item.qty),mid=Math.round((range[0]+range[1])*item.qty/2);
+      const rate=(category==='Groceries'?rates.grocery:rates.other)/100;
+      totals.lines[item.id]={low,high,mid};totals.priced++;c.priced++;
+      for(const key of ['low','high','mid']){const value={low,high,mid}[key];totals[key]+=value;c[key]+=value;totals['tax'+key[0].toUpperCase()+key.slice(1)]+=Math.round(value*rate);}
+    }
+    return totals;
+  }
+  function inventoryConfidence(item) {
+    // Future adapter: require branch + exact SKU/variant + availability + timestamp + source.
+    // A product page or category match alone must never produce a “confirmed” badge.
+    if(!item.store) return {label:'Unknown',detail:'No store assigned; inventory not checked.'};
+    if(!item.match || item.store!==item.match.store) return {label:'Unverified',detail:'Manually assigned store; inventory not checked.'};
+    if(item.store==='books') return {label:'Plausible · unverified',detail:'Bookstore category match only; title, edition, and branch inventory are unchecked.'};
+    return {label:'Highly plausible · unverified',detail:'The store commonly fits this category. Exact item, brand, size, and branch stock are unchecked.'};
+  }
+  function webSearchURL(item) {
+    const scope=item.store?`site:${STORES[item.store].domain} `:'';
+    return 'https://www.google.com/search?'+new URLSearchParams({q:scope+item.name+' availability'});
+  }
+  function nearbyURL(store,address) {
+    return 'https://www.google.com/maps/search/?'+new URLSearchParams({api:'1',query:store.name+' near '+address});
+  }
+  function renderMap(route,origin) {
+    if(!route || !route.order.length){$('routeMap').innerHTML='';$('routeMap').hidden=true;return;}
+    $('routeMap').hidden=false;
+    const point=id=>NODES[id].join(','),path=[];
+    for(const leg of route.legs){let at=leg.from;path.push(at);while(at!==leg.to){at=NETWORK.next[at][leg.to];path.push(at);}}
+    const roads=ROADS.map(([a,b,m])=>`<line x1="${NODES[a][0]}" y1="${NODES[a][1]}" x2="${NODES[b][0]}" y2="${NODES[b][1]}" stroke="#d9e3ef" stroke-width="12" stroke-linecap="round"/><text x="${(NODES[a][0]+NODES[b][0])/2}" y="${(NODES[a][1]+NODES[b][1])/2-13}" text-anchor="middle" fill="#56657a">${m} mi</text>`).join('');
+    const pins=Object.entries(NODES).map(([id,[x,y]])=>{
+      const i=route.order.indexOf(id),active=i>=0,start=id===origin;
+      const pin=`<circle cx="${x}" cy="${y}" r="${active||start?17:7}" fill="${start?'#10213d':active?'#1463ff':'#bdcadb'}" stroke="white" stroke-width="3"/>${active||start?`<text x="${x}" y="${y+5}" text-anchor="middle" fill="white" font-weight="700">${start?'S':i+1}</text>`:''}<text x="${x}" y="${y+(y<100?-30:38)}" text-anchor="middle" fill="#243b5e">${escapeHTML(STORES[id]?.short || (start?'Start':id))}</text>`;
+      return active?`<a href="#stop-${id}" data-pin="${id}" aria-label="Open stop ${i+1}, ${escapeHTML(STORES[id].name)}">${pin}</a>`:pin;
+    }).join('');
+    $('routeMap').innerHTML=`<svg viewBox="0 0 640 285" role="img" aria-label="Fictional neighborhood route. S is the start; numbered pins are shopping stops. Distances are sample miles."><title>Sample neighborhood, not a navigation map</title>${roads}<polyline points="${path.map(point).join(' ')}" fill="none" stroke="#1463ff" stroke-width="4" stroke-linejoin="round" stroke-linecap="round"/>${pins}</svg>`;
+  }
+  function itemHTML(item,cost) {
+    const line=cost.lines[item.id],confidence=inventoryConfidence(item),unitRange=priceRange(item);
+    const options='<option value="">Choose a store</option>'+Object.entries(STORES).map(([id,s])=>`<option value="${id}" ${item.store===id?'selected':''}>${escapeHTML(s.name)}</option>`).join('');
+    const placeholder=unitRange?((unitRange[0]+unitRange[1])/200).toFixed(2):'Unknown';
+    return `<div class="item ${item.done?'done':''}"><div class="item-title"><input type="checkbox" data-done="${item.id}" ${item.done?'checked':''} aria-label="Mark ${escapeHTML(item.name)} purchased"><div><strong class="item-name">${escapeHTML(item.name)}</strong><p class="muted">${quantityText(item.qty)} × ${escapeHTML(item.unit)}${item.assumed?' (assumed unit)':''}</p></div><span class="item-cost">${line?dollars(line.mid):'Unpriced'}</span></div><div class="item-meta"><span class="badge warn" title="${escapeHTML(confidence.detail)}">${confidence.label}</span><span class="footnote">${line?(item.customPrice!==null?'Your budget':'Sample estimate')+' · '+rangeText(line.low,line.high):'Excluded from total until priced'}</span></div><p class="footnote gap-top">${escapeHTML(confidence.detail)}</p><div class="item-controls"><label>Assigned store<select class="field small-field" data-store="${item.id}" aria-label="Store for ${escapeHTML(item.name)}">${options}</select></label><label>USD per ${escapeHTML(item.unit)}<input class="field small-field" type="number" min="0" max="100000" step="0.01" data-price="${item.id}" value="${item.customPrice===null?'':(item.customPrice/100).toFixed(2)}" placeholder="${placeholder}" aria-label="Unit budget for ${escapeHTML(item.name)}"></label></div><div class="item-links"><a href="${escapeHTML(webSearchURL(item))}" target="_blank" rel="noopener noreferrer">${item.store?'Search retailer site':'Search item'} ↗</a></div></div>`;
+  }
+  function renderUI() {
+    const {items,origin,address,returnTrip,rates,skipped}=state;
+    const openIds=new Set([...document.querySelectorAll('.route-card[open]')].map(el=>el.id));
+    const route=sortRoute(items,origin,returnTrip),cost=calculateCost(items,rates),unassigned=items.filter(i=>!i.store),missing=items.length-cost.priced;
+    $('emptyState').hidden=true;$('output').hidden=false;
+    const notices=[];
+    if(!origin) notices.push('This address is not in the offline map. Choose a sample starting address to calculate a route. Nearby-store links use the address you entered.');
+    if(unassigned.length) notices.push(`${unassigned.length} item${unassigned.length===1?' needs':'s need'} a store and ${unassigned.length===1?'is':'are'} excluded from the route.`);
+    if(missing) notices.push(`${missing} item${missing===1?' has':'s have'} no compatible price estimate. The total is partial; enter unit budgets to include them.`);
+    $('notices').innerHTML=notices.map(t=>`<p class="note warning">${escapeHTML(t)}</p>`).join('');
+    $('notices').hidden=!notices.length;
+    $('routeMeta').textContent=route?.order.length?`${route.order.length} stops · ${quantityText(route.miles)} sample miles · ${returnTrip?'round trip':'ends at final store'}`:'Store groups ready · route pending';
+    $('routeExplanation').textContent=route?.order.length?'Shortest order on this fictional road network. Real branch locations, driving distances, traffic, and opening hours are not checked. Tap a numbered pin to open a stop.':'A route requires a mapped sample address and at least one assigned store.';
+    renderMap(route,origin);
+    $('totalLabel').textContent=missing?'Partial estimated cost':'Total estimated cost';
+    $('totalMoney').textContent=cost.priced?dollars(cost.mid+cost.taxMid):'No estimate';
+    $('totalRange').textContent=cost.priced?`${rangeText(cost.low+cost.taxLow,cost.high+cost.taxHigh)} incl. estimated tax`:'Enter unit budgets to calculate a total.';
+    $('taxMoney').textContent=cost.priced?dollars(cost.taxMid):'—';
+    $('coverage').textContent=`${cost.priced} of ${items.length} entries priced · ${rates.grocery}% groceries / ${rates.other}% other`;
+    $('categoryCards').innerHTML=Object.entries(cost.categories).map(([name,c])=>`<div class="category"><p>${escapeHTML(name)}</p><strong>${c.priced?dollars(c.mid):'Unpriced'}</strong><p class="footnote">${c.priced?rangeText(c.low,c.high):'No estimate'}${c.missing?` · ${c.missing} unpriced`:''}</p><div class="bar gap-top"><span style="width:${cost.mid?Math.max(0,Math.min(100,c.mid/cost.mid*100)):0}%"></span></div></div>`).join('');
+    const done=items.filter(i=>i.done).length;$('progressText').textContent=`${done} / ${items.length} entries`;$('shoppingProgress').max=items.length;$('shoppingProgress').value=done;
+    const order=route?.order || Object.keys(STORES).filter(id=>items.some(i=>i.store===id));
+    $('stopsHeading').textContent=route?.order.length?'Stop by stop':'Store groups';
+    $('stops').innerHTML=order.map((id,index)=>{
+      const grouped=items.filter(i=>i.store===id),leg=route?.legs[index],from=index?STORES[order[index-1]].short:'start';
+      return `<details class="route-card" id="stop-${id}" ${openIds.has('stop-'+id)||index===0?'open':''}><summary><span class="route-number">${route?index+1:'•'}</span><div><h3>${escapeHTML(STORES[id].name)}</h3><p class="muted">${grouped.length} entries${leg?` · ${quantityText(leg.miles)} sample mi from ${escapeHTML(from)}`:''}</p></div></summary><div style="padding:12px 16px"><a href="${escapeHTML(nearbyURL(STORES[id],address))}" target="_blank" rel="noopener noreferrer" class="muted">Find real nearby branches ↗</a><p class="footnote">Search results do not validate this sample stop or its stock.</p></div>${grouped.map(i=>itemHTML(i,cost)).join('')}</details>`;
+    }).join('');
+    if(route?.order.length && returnTrip){const leg=route.legs.at(-1);$('stops').insertAdjacentHTML('beforeend',`<div class="route-end"><strong>Return to start</strong><p class="muted">${quantityText(leg.miles)} sample mi · ${escapeHTML(address)}</p></div>`);}
+    $('unassignedSection').hidden=!unassigned.length;$('unassigned').innerHTML=unassigned.map(i=>itemHTML(i,cost)).join('');
+    $('status').className='muted';$('status').textContent=`${items.length} entries parsed.${skipped?` ${skipped} checked lines skipped.`:''} Inventory remains unverified.`;
+  }
+  function optimize() {
+    if(!$('planner').reportValidity()) return;
+    try {
+      const parsed=parseInput($('shoppingList').value);if(!parsed.items.length) throw new Error('Add at least one unchecked shopping item.');
+      const address=$('startAddress').value.trim();if(!address) throw new Error('Enter a starting address.');
+      // Preserve edits for unchanged entries, including repeated items as separate occurrences.
+      const key=item=>JSON.stringify([item.name,item.qty,item.unit]), retained=new Map();
+      for(const item of state?.items||[]){const k=key(item);if(!retained.has(k))retained.set(k,[]);retained.get(k).push(item);}
+      for(const item of parsed.items){const previous=retained.get(key(item))?.shift();if(previous)Object.assign(item,{store:previous.store,customPrice:previous.customPrice,done:previous.done});}
+      state={...parsed,address,origin:resolveOrigin(address),returnTrip:$('returnTrip').checked,rates:{grocery:Number($('groceryTax').value),other:Number($('otherTax').value)}};
+      renderUI();
+    } catch(error) {state=null;$('output').hidden=true;$('emptyState').hidden=false;$('status').className='note error';$('status').textContent=error.message;}
+  }
+  function markDirty() {
+    if(!state) return;$('output').hidden=true;$('emptyState').hidden=false;
+    $('status').className='muted';$('status').textContent='Inputs changed. Optimize again to refresh your route and estimates.';
+  }
+  $('planner').addEventListener('submit',event=>{event.preventDefault();optimize();});
+  $('planner').addEventListener('input',markDirty);
+  $('loadSample').addEventListener('click',()=>{state=null;$('shoppingList').value=SAMPLE;$('startAddress').value=ORIGINS.west;optimize();});
+  document.querySelectorAll('[data-origin]').forEach(button=>button.addEventListener('click',()=>{$('startAddress').value=ORIGINS[button.dataset.origin];optimize();}));
+  $('output').addEventListener('change',event=>{
+    if(!state) return;const el=event.target;
+    const kind=el.hasAttribute('data-done')?'done':el.hasAttribute('data-store')?'store':el.hasAttribute('data-price')?'price':null;if(!kind)return;
+    const item=state.items.find(i=>i.id===Number(el.dataset[kind]));if(!item)return;
+    if(kind==='done')item.done=el.checked;
+    if(kind==='store'){if(el.value && !STORES[el.value])return;item.store=el.value;}
+    if(kind==='price'){if(!el.reportValidity())return;item.customPrice=el.value===''?null:Math.round(Number(el.value)*100);}
+    renderUI();
+    const control=document.querySelector(`[data-${kind}="${item.id}"]`), section=control?.closest('.route-card');
+    if(section)section.open=true;
+    control?.focus({preventScroll:true});
+  });
+  $('routeMap').addEventListener('click',event=>{const pin=event.target.closest('[data-pin]');if(!pin)return;event.preventDefault();const stop=$('stop-'+pin.dataset.pin);if(stop){stop.open=true;stop.scrollIntoView({block:'start'});stop.querySelector('summary').focus({preventScroll:true});}});
+  // No storage, keys, scraping proxies, or background requests. Search links open on user action.
+  $('shoppingList').value=SAMPLE;
+  optimize();
+  </script>
+</body>
+</html>
